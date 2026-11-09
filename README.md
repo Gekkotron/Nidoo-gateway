@@ -22,18 +22,9 @@ An end-to-end encrypted gateway for HTTP APIs and MQTT communications, using AES
 
 ## Architecture
 
-```
-┌─────────────┐    Encrypted     ┌─────────────────────┐    Unencrypted    ┌──────────────┐
-│   Client    │ ───────────────> │    Nidoo-gateway    │ ────────────────> │  HTTP APIs   │
-│ (Your App)  │ <─────────────── │                     │ <──────────────── │  (Any Server)│
-└─────────────┘    AES-GCM       └─────────────────────┘                    └──────────────┘
-                                            │
-                                            │ Unencrypted
-                                            ↓
-                                    ┌─────────────┐
-                                    │ MQTT Broker │
-                                    └─────────────┘
-```
+<p align="center">
+  <img src="docs/architecture.svg" width="880" alt="Nidoo-gateway architecture: the client sends an AES-GCM encrypted request to the gateway, which decrypts it and forwards it in plain form to an HTTP API or the MQTT broker, then encrypts the reply on the way back.">
+</p>
 
 The gateway acts as a secure proxy, encrypting/decrypting traffic between your client applications and backend services (HTTP APIs and MQTT).
 
