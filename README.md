@@ -6,7 +6,7 @@
 
 An end-to-end encrypted gateway for HTTP APIs and MQTT communications, using AES-GCM. Ship home-automation traffic over the public internet through a single encrypted tunnel — no per-service certificates, no exposed brokers.
 
-> The gateway of [Nidoo](https://github.com/Gekkotron/Nidoo): the Nidoo app reaches the hub through it when away from home. Formerly **Oikos-gateway**, and before that **Athena-HttpMqttGateway**. GitHub redirects the old URLs, and the old JitPack coordinates keep working.
+> The gateway of [Nidoo](https://github.com/Gekkotron/Nidoo): the Nidoo app reaches the hub through it when away from home.
 
 ## Features
 
