@@ -1,6 +1,6 @@
-# Athena Gateway Client (Kotlin)
+# Nidoo Gateway Client (Kotlin)
 
-Kotlin/JVM client for the [Athena HTTP/MQTT gateway](../../README.md): forward HTTP
+Kotlin/JVM client for the [Nidoo-gateway](../../README.md) HTTP/MQTT gateway: forward HTTP
 requests, publish to MQTT and stream MQTT topics live, end-to-end encrypted.
 Works in any Android app (no Android framework dependency) and on the JVM.
 
@@ -16,7 +16,7 @@ dependencyResolutionManagement {
 
 // build.gradle.kts
 dependencies {
-    implementation("com.github.Gekkotron.Oikos-gateway:athena-gateway-client:v1.3")
+    implementation("com.github.Gekkotron.Nidoo-gateway:athena-gateway-client:v1.3")
 }
 ```
 
@@ -112,11 +112,11 @@ The client keeps your timeouts for `http`/`publish`; streams use a 45 s read tim
 
 ## Version alignment (optional)
 
-If you add more Athena artifacts later, the BOM keeps them on one version:
+If you add more Nidoo-gateway artifacts later, the BOM keeps them on one version:
 
 ```kotlin
-implementation(platform("com.github.Gekkotron.Oikos-gateway:athena-gateway-bom:v1.3"))
-implementation("com.github.Gekkotron.Oikos-gateway:athena-gateway-client")
+implementation(platform("com.github.Gekkotron.Nidoo-gateway:athena-gateway-bom:v1.3"))
+implementation("com.github.Gekkotron.Nidoo-gateway:athena-gateway-client")
 ```
 
 ## License

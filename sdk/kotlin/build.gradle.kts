@@ -67,12 +67,12 @@ publishing {
             artifactId = "athena-gateway-client"
             from(components["java"])
             pom {
-                name.set("Athena Gateway Client")
-                description.set("Kotlin client for the Athena end-to-end encrypted HTTP/MQTT gateway.")
-                url.set("https://github.com/Gekkotron/Athena-HttpMqttGateway")
+                name.set("Nidoo Gateway Client")
+                description.set("Kotlin client for the Nidoo end-to-end encrypted HTTP/MQTT gateway.")
+                url.set("https://github.com/Gekkotron/Nidoo-gateway")
                 licenses { license { name.set("MIT"); url.set("https://opensource.org/licenses/MIT") } }
                 developers { developer { id.set("Gekkotron"); name.set("Gekkotron") } }
-                scm { url.set("https://github.com/Gekkotron/Athena-HttpMqttGateway") }
+                scm { url.set("https://github.com/Gekkotron/Nidoo-gateway") }
             }
         }
     }

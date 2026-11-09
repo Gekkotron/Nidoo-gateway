@@ -1,12 +1,12 @@
-# Oikos-gateway
+# Nidoo-gateway
 
-[![CI](https://github.com/Gekkotron/Oikos-gateway/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Gekkotron/Oikos-gateway/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Gekkotron/Oikos-gateway/badges/coverage.json)](https://github.com/Gekkotron/Oikos-gateway/actions/workflows/ci.yml)
-[![SDK coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Gekkotron/Oikos-gateway/badges/sdk-coverage.json)](sdk/kotlin/README.md)
+[![CI](https://github.com/Gekkotron/Nidoo-gateway/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Gekkotron/Nidoo-gateway/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Gekkotron/Nidoo-gateway/badges/coverage.json)](https://github.com/Gekkotron/Nidoo-gateway/actions/workflows/ci.yml)
+[![SDK coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Gekkotron/Nidoo-gateway/badges/sdk-coverage.json)](sdk/kotlin/README.md)
 
 An end-to-end encrypted gateway for HTTP APIs and MQTT communications, using AES-GCM. Ship home-automation traffic over the public internet through a single encrypted tunnel — no per-service certificates, no exposed brokers.
 
-> Formerly **Athena-HttpMqttGateway**. GitHub redirects the old URLs, and the old JitPack coordinates keep working.
+> The gateway of [Nidoo](https://github.com/Gekkotron/Nidoo): the Nidoo app reaches the hub through it when away from home. Formerly **Oikos-gateway**, and before that **Athena-HttpMqttGateway**. GitHub redirects the old URLs, and the old JitPack coordinates keep working.
 
 ## Features
 
@@ -24,7 +24,7 @@ An end-to-end encrypted gateway for HTTP APIs and MQTT communications, using AES
 
 ```
 ┌─────────────┐    Encrypted     ┌─────────────────────┐    Unencrypted    ┌──────────────┐
-│   Client    │ ───────────────> │    Oikos-gateway    │ ────────────────> │  HTTP APIs   │
+│   Client    │ ───────────────> │    Nidoo-gateway    │ ────────────────> │  HTTP APIs   │
 │ (Your App)  │ <─────────────── │                     │ <──────────────── │  (Any Server)│
 └─────────────┘    AES-GCM       └─────────────────────┘                    └──────────────┘
                                             │
@@ -400,7 +400,7 @@ The SSE stream will receive encrypted messages with the following types:
 Use the official client library, [`athena-gateway-client`](sdk/kotlin/README.md):
 
 ```kotlin
-implementation("com.github.Gekkotron.Oikos-gateway:athena-gateway-client:v1.4")
+implementation("com.github.Gekkotron.Nidoo-gateway:athena-gateway-client:v1.4")
 ```
 
 Fetch binary files (camera snapshots, clips) with `download()` (needs gateway v1.3+):

@@ -1,6 +1,6 @@
 [Unit]
 Description=Encryption Gateway health check timer
-Documentation=https://github.com/Gekkotron/Athena-HttpMqttGateway
+Documentation=https://github.com/Gekkotron/Nidoo-gateway
 
 [Timer]
 # Fire 1 minute after boot, then every 5 minutes after each activation.
