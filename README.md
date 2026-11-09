@@ -10,15 +10,15 @@ An end-to-end encrypted gateway for HTTP APIs and MQTT communications, using AES
 
 ## Features
 
-- **AES-GCM Encryption**: Military-grade end-to-end encryption for all requests and responses
+- **AES-256-GCM Encryption**: Every request and response is encrypted between the client and the gateway
 - **Multi-Service Support**: Unified gateway for both generic HTTP APIs and MQTT broker communications
 - **MQTT Publish & Subscribe**: Full MQTT support with encrypted publish and SSE-based subscription streaming
 - **Generic HTTP Proxy**: Forward any HTTP request with encrypted payload
 - **Automatic Key Management**: Secure secret key generation on first launch
-- **Replay Attack Protection**: Timestamp validation with configurable time windows
+- **Replay Attack Protection**: Timestamp validation with a configurable window, and reused nonces are rejected
 - **Docker Ready**: Complete containerization with Docker Compose support
 - **Tailscale Funnel Integration**: Secure public internet exposure without port forwarding
-- **Production Ready**: Comprehensive error handling, logging, and health checks
+- **Health Checks**: A `/health` endpoint, plus gateway and Tailscale checks that can restart services and publish their state over MQTT
 
 ## Architecture
 
@@ -32,7 +32,7 @@ The gateway acts as a secure proxy, encrypting/decrypting traffic between your c
 
 ### Prerequisites
 
-- Python 3.9+ or Docker
+- Python 3.11+ (CI tests 3.11 and 3.12) or Docker
 - (Optional) Tailscale for secure internet exposure
 
 ### Installation
@@ -41,14 +41,13 @@ The gateway acts as a secure proxy, encrypting/decrypting traffic between your c
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd FullEndToEndEncryption
+git clone https://github.com/Gekkotron/Nidoo-gateway.git
+cd Nidoo-gateway
 ```
 
-2. Configure environment (optional):
+2. Configure (optional): Compose reads `MAX_AGE_SECONDS` from a `.env` file; to change anything else, edit `environment:` in `docker-compose.yml` (see [Environment Variables](#environment-variables)):
 ```bash
 cp .env.example .env
-# Edit .env to customize settings
 ```
 
 3. Start with Docker Compose:
@@ -85,8 +84,8 @@ On first launch, the server automatically generates a 256-bit AES secret key wit
 NEW SECRET KEY GENERATED!
 ================================================================================
 Secret key: 3616864d6ed4f70b8a774e17c7435b411d8bc5714fddaf88e3850104a9d88ccd
-Saved to: secret_key.txt
-Scope: * (full access to every port)
+Saved to: data/secret_key.txt
+Scope: * (full access to every port and destination)
 ================================================================================
 Please update your client with this secret key.
 ================================================================================
@@ -96,7 +95,7 @@ Please update your client with this secret key.
 
 #### Multiple secrets with per-endpoint scopes
 
-`secret_key.txt` is a **line-based** list of secrets. Each line is
+The key file (`data/secret_key.txt`, or whatever `SECRET_KEY_FILE` points to) is a **line-based** list of secrets. Each line is
 `<64-hex-chars>[:<scope>]`, where the scope selects which endpoint
 families the secret may reach:
 
@@ -202,12 +201,7 @@ so a corrupted line stops the tool before it writes anything.
 
 ### Environment Variables
 
-You can configure the gateway using environment variables. Create a `.env` file in the project root:
-
-```bash
-cp .env.example .env
-# Edit .env with your settings
-```
+The gateway reads these from real environment variables: `export` them, pass `-e` to `docker run`, or set them under `environment:` in `docker-compose.yml`. The server itself does **not** load `.env`; that file is read by the test clients and health checks, and by Compose for `MAX_AGE_SECONDS` only.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -215,7 +209,7 @@ cp .env.example .env
 | `MAX_AGE_SECONDS` | `60` | Maximum age for request timestamps (replay protection) |
 | `HOST` | `0.0.0.0` | Server bind address |
 | `PORT` | `10000` | Server port |
-| `MQTT_BROKER_HOST` | `192.168.1.91` | Default MQTT broker hostname |
+| `MQTT_BROKER_HOST` | `192.168.1.91` | Default MQTT broker host, used when a request gives no `broker_host` |
 | `MQTT_BROKER_PORT` | `1883` | Default MQTT broker port |
 | `HTTP_MAX_RESPONSE_BYTES` | `26214400` (25 MiB) | Size cap for `/gateway` responses in raw mode (`"raw": true`) |
 
@@ -233,7 +227,7 @@ The project includes ready-to-use Python client classes for HTTP and MQTT:
 #### HTTP Request Example
 
 ```python
-from test_client.client_http_test import EncryptedClient
+from test_client.client_http_test import EncryptedHttpClient
 
 # Load secret key from file
 with open('data/secret_key.txt', 'r') as f:
@@ -241,7 +235,7 @@ with open('data/secret_key.txt', 'r') as f:
     SECRET_KEY = f.readline().strip().split(':', 1)[0]
 
 # Initialize client
-client = EncryptedClient(
+client = EncryptedHttpClient(
     gateway_url="http://localhost:10000",
     secret_key=SECRET_KEY
 )
@@ -356,7 +350,7 @@ print(f"Body: {response['body']}")
 
 #### MQTT Subscribe (SSE) Example
 
-Subscribe to MQTT topics and receive messages in real-time via Server-Sent Events:
+Subscribe to MQTT topics and receive messages in real-time via Server-Sent Events. This helper is an interactive demo: it reads the key from `SECRET_KEY_FILE` and prints messages until Ctrl+C.
 
 ```python
 from test_client.client_mqtt_sse_test import subscribe_to_mqtt_topic
@@ -382,7 +376,7 @@ subscribe_to_mqtt_topic(
 
 The SSE stream will receive encrypted messages with the following types:
 - **connected**: Successfully subscribed to the topic
-- **message**: MQTT message received (includes topic, payload, qos, retain)
+- **message**: MQTT message received (includes topic, payload, payload_b64, qos, retain, timestamp)
 - **error**: An error occurred
 - **disconnected**: Connection closed
 
@@ -472,28 +466,32 @@ Each SSE event contains an encrypted payload with one of these message types:
 {
     "type": "message",
     "topic": "home/sensors/temperature",
-    "payload": "22.5",
+    "payload": 22.5,
+    "payload_b64": "MjIuNQ==",
     "qos": 1,
     "retain": false,
     "timestamp": 1234567890
 }
 ```
 
+`payload` is the message parsed as JSON when possible (here the number `22.5`), otherwise the text, or `null` when the bytes are not UTF-8. `payload_b64` always carries the exact bytes (gateway v1.2+).
+
 3. **Error Event:**
 ```json
 {
     "type": "error",
     "message": "Connection failed with code 5",
-    "timestamp": 1234567890
+    "code": 5
 }
 ```
+
+`code` is the broker's CONNACK code and is present only on connection failures.
 
 4. **Disconnected Event:**
 ```json
 {
     "type": "disconnected",
-    "message": "Disconnected from broker (code 0)",
-    "timestamp": 1234567890
+    "message": "Disconnected from broker (code 0)"
 }
 ```
 
@@ -501,7 +499,7 @@ All messages are encrypted using AES-GCM and base64-encoded before being sent vi
 
 ### Response Format
 
-All responses are encrypted and contain:
+All responses are encrypted and contain at least:
 
 ```json
 {
@@ -511,11 +509,13 @@ All responses are encrypted and contain:
 }
 ```
 
+`/gateway` answers may add `headers` (v1.4+), or `body_b64` and `content_type` in raw mode, and errors the gateway produces itself carry `"source": "gateway"`. See [POST /gateway](#post-gateway).
+
 ## Testing
 
 ### Unit Tests
 
-Offline tests (no broker, no network) run on every push via GitHub Actions:
+Offline tests (no broker, no network) run in GitHub Actions on pushes to `master` and on pull requests, on Python 3.11 and 3.12; coverage must stay at 90% or more:
 
 ```bash
 pip install -r requirements-dev.txt
@@ -536,29 +536,36 @@ python test_client/client_all_services_test.py
 ### Run Individual Tests
 
 ```bash
-# HTTP gateway tests
+# HTTP gateway tests (6 test cases)
 python test_client/client_http_test.py
 
-# MQTT tests (4 test cases)
+# MQTT publish tests (4 test cases)
 python test_client/client_mqtt_test.py
+
+# MQTT SSE subscribe tests (3 test cases)
+python test_client/client_mqtt_sse_automated_test.py
 ```
 
 ### Test Coverage
 
 **HTTP Gateway Tests:**
-- Valid timestamp requests
+- Valid GET request
+- Valid POST request
 - Expired timestamp rejection
 - Future timestamp rejection
 - Wrong secret key handling
-- Missing required fields
-- Multiple rapid requests (stress test)
-- Different HTTP methods (GET, POST, PUT, DELETE)
+- Missing URL field
 
 **MQTT Tests:**
 - Basic message publishing
 - QoS and retain flags
 - Custom broker configuration
 - Error handling for missing fields
+
+**MQTT SSE Tests:**
+- Basic subscription connection
+- Wildcard topic subscription
+- Invalid (empty) topic rejection
 
 ## Health Checks
 
@@ -676,7 +683,9 @@ Ships with a `.service` + `.timer` pair under `scripts/systemd/`. The timer fire
 sudo scripts/install-systemd.sh
 ```
 
-The installer picks up the current directory as `REPO_DIR`, the invoking user (`$SUDO_USER`) as the service user, and `./.venv/bin/python` if you use a venv (falling back to system `python3`). Override any of these with env vars, e.g. `sudo REPO_DIR=/opt/enc-gw PYTHON_BIN=/usr/local/bin/python3.11 scripts/install-systemd.sh`.
+The installer picks up the current directory as `REPO_DIR`, the invoking user (`$SUDO_USER`) as the service user, and `./.venv/bin/python` if you use a venv (falling back to system `python3`). Override any of these with env vars (`REPO_DIR`, `SERVICE_USER`, `PYTHON_BIN`), e.g. `sudo REPO_DIR=/opt/enc-gw PYTHON_BIN=/usr/local/bin/python3.11 scripts/install-systemd.sh`.
+
+The service loads `REPO_DIR/.env` and fails to start if that file is missing, so create it first (`cp .env.example .env`). Remove everything with `sudo scripts/uninstall-systemd.sh`.
 
 **Common ops:**
 
@@ -715,7 +724,7 @@ chmod +x run_tailscale.sh
 ./run_tailscale.sh
 ```
 
-Your gateway will be accessible via a public HTTPS URL like `https://yourdevice.tailnet-name.ts.net`.
+The script uses `sudo`: it turns Funnel off (which clears any existing Funnel setup on this machine) and then serves port 10000 in the background. Your gateway will be accessible via a public HTTPS URL like `https://yourdevice.tailnet-name.ts.net`; `tailscale funnel status` shows it.
 
 ## Security Features
 
@@ -746,29 +755,47 @@ The gateway validates timestamps to prevent replay attacks:
 ## Project Structure
 
 ```
-FullEndToEndEncryption/
+Nidoo-gateway/
 ├── server/
 │   ├── __init__.py
 │   ├── __main__.py          # Entry point
 │   ├── app.py               # Flask application factory
-│   ├── config.py            # Configuration management
+│   ├── config.py            # Configuration from environment variables
 │   ├── crypto.py            # AES-GCM encryption/decryption
 │   ├── gateway.py           # Request routing and handling
-│   ├── key_manager.py       # Secret key generation
+│   ├── key_manager.py       # Secret loading, scopes, first-launch generation
+│   ├── add_secret.py        # CLI: append a scoped secret
+│   ├── replay.py            # Nonce cache for replay protection
 │   └── services/
 │       ├── http_service.py        # Generic HTTP proxy handler
 │       ├── mqtt_service.py        # MQTT publish handler
 │       └── mqtt_sse_service.py    # MQTT subscribe via SSE handler
 ├── test_client/
-│   ├── client_http_test.py        # HTTP gateway client and tests
-│   ├── client_mqtt_test.py        # MQTT publish client and tests
-│   ├── client_mqtt_sse_test.py    # MQTT SSE subscribe client
-│   └── client_all_services_test.py  # Test runner
+│   ├── client_http_test.py              # HTTP gateway client and tests
+│   ├── client_mqtt_test.py              # MQTT publish client and tests
+│   ├── client_mqtt_sse_test.py          # MQTT SSE subscribe demo
+│   ├── client_mqtt_sse_automated_test.py  # MQTT SSE subscribe tests
+│   ├── client_all_services_test.py      # Test runner
+│   ├── health_check.py                  # Health check entry point
+│   ├── health_check_gateway.py          # Gateway check
+│   ├── health_check_tailscale.py        # Tailscale Funnel check
+│   ├── health_alert.py                  # MQTT state publishing
+│   └── _crypto.py, _env.py              # Shared helpers
+├── tests/                   # Offline pytest suite
+├── scripts/                 # systemd install/uninstall + units
 ├── sdk/kotlin/              # Kotlin client library (athena-gateway-client)
+├── docs/                    # Architecture diagram, design notes
+├── .github/workflows/ci.yml # Tests and coverage gate
+├── .env.example             # Settings for test clients and health checks
 ├── docker-compose.yml       # Docker Compose configuration
 ├── Dockerfile               # Container image definition
-├── requirements.txt         # Python dependencies
-├── run_tailscale.sh        # Tailscale Funnel helper script
+├── requirements.txt         # Server dependencies
+├── requirements-dev.txt     # Test dependencies
+├── pytest.ini
+├── jitpack.yml              # JitPack build for the Kotlin SDK
+├── run_tailscale.sh         # Tailscale Funnel helper script
+├── update.sh
+├── LICENSE
 └── README.md
 ```
 
@@ -791,10 +818,9 @@ Gateway endpoint for encrypted HTTP requests to any API.
 - `headers`: (Optional) HTTP headers dict, defaults to `{"Content-Type": "application/json"}`
 - `timeout`: (Optional) Request timeout in seconds, defaults to 30
 - `raw`: (Optional, v1.3+) `true` to get the upstream body as exact bytes, e.g. a JPEG snapshot or MP4 clip (see below)
+- `timestamp`: Current Unix timestamp (required for replay protection)
 
 **Response headers (v1.4+):** non-raw answers also carry `"headers"`: the upstream response headers with lower-case names; several `Set-Cookie` lines are joined with `\n`. The Kotlin SDK exposes them as `GatewayResponse.headers` (empty from an older gateway).
-
-- `timestamp`: Current Unix timestamp (required for replay protection)
 
 **Raw responses (`"raw": true`):**
 By default `body` is the upstream JSON or text, which corrupts binary content. With `raw` the gateway streams the upstream body and answers:
@@ -880,8 +906,8 @@ Health check endpoint.
 # Activate virtual environment
 source .venv/bin/activate
 
-# Run with auto-reload
-FLASK_ENV=development python -m server
+# Run the server (no auto-reload: restart it after code changes)
+python -m server
 ```
 
 ### Building Docker Image
@@ -893,8 +919,8 @@ docker build -t encryption-gateway:latest .
 ### Code Organization
 
 - **Modular Design**: Separate services for different protocols
-- **Type Hints**: Full type annotations for better IDE support
-- **Error Handling**: Comprehensive exception handling and logging
+- **Type Hints**: Type annotations on the public functions
+- **Error Handling**: Errors are returned to the client as encrypted responses
 - **Clean Architecture**: Clear separation of concerns
 
 ## Troubleshooting
@@ -920,9 +946,9 @@ curl http://localhost:10000/health
 
 ### Docker Volume Permissions
 
-If you encounter permission issues with the data volume:
+The container runs as root, so it can always write `./data`. If you then can't edit `data/secret_key.txt` from the host, take ownership back:
 ```bash
-sudo chown -R 1000:1000 ./data
+sudo chown -R "$(id -u):$(id -g)" ./data
 ```
 
 ## License
@@ -934,11 +960,9 @@ sudo chown -R 1000:1000 ./data
 Contributions are welcome! Areas for improvement:
 
 - Additional service handlers (Home Assistant, InfluxDB, etc.)
-- Key rotation mechanism
-- Multi-user support with per-user keys
+- Automated key rotation
 - Rate limiting and DDoS protection
 - Prometheus metrics endpoint
-- Android SSE client implementation example
 
 ## Acknowledgments
 
@@ -950,4 +974,4 @@ Built with:
 
 ## Support
 
-For issues, questions, or contributions, please open an issue on the project repository.
+For issues, questions, or contributions, please [open an issue](https://github.com/Gekkotron/Nidoo-gateway/issues).

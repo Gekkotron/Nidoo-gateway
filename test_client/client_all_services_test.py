@@ -21,7 +21,6 @@ def main():
     run_test("test_client/client_http_test.py")
     run_test("test_client/client_mqtt_test.py")
     run_test("test_client/client_mqtt_sse_automated_test.py")
-    run_test("test_client/client_proxy_test.py")
 
 
 if __name__ == "__main__":

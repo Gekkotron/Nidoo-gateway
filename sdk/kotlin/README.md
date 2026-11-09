@@ -4,7 +4,7 @@ Kotlin/JVM client for the [Nidoo-gateway](../../README.md) HTTP/MQTT gateway: fo
 requests, publish to MQTT and stream MQTT topics live, end-to-end encrypted.
 Works in any Android app (no Android framework dependency) and on the JVM.
 
-Requires a gateway at **v1.1 or later**; `Message.raw` and `BrokerRefused` need **v1.2**; `download()` needs **v1.3**.
+Requires a gateway at **v1.1 or later**; `Message.raw` and `BrokerRefused` need **v1.2**; `download()` needs **v1.3**; `GatewayResponse.headers` needs **v1.4** (empty from an older gateway).
 
 ## Install
 
@@ -16,7 +16,7 @@ dependencyResolutionManagement {
 
 // build.gradle.kts
 dependencies {
-    implementation("com.github.Gekkotron.Nidoo-gateway:athena-gateway-client:v1.3")
+    implementation("com.github.Gekkotron.Nidoo-gateway:athena-gateway-client:v1.4")
 }
 ```
 
@@ -83,7 +83,7 @@ All failures are `GatewayException`s:
 | `Unauthorized` | No gateway secret matches your key | no |
 | `BadRequest` | The gateway could not parse the request | no |
 | `Rejected(reason)` | Refused: `Request expired` (check the device clock), `Request replayed`, `port not allowed…`, `destination not allowed…` | no |
-| `GatewayError(reason)` | Gateway-side failure | no |
+| `GatewayError(reason)` | Gateway-side failure | only when temporary: HTTP 408/429/502/503/504 in front of the gateway, or a stream frame that could not be decrypted |
 | `Upstream(status, body)` | The device or broker failed (pass `throwOnUpstreamError = false` to `http` to get the response instead) | — |
 | `BrokerRefused(code, reason)` | The MQTT broker refused the login: `4` bad username/password, `5` not authorized | no |
 | `StreamError(reason)` | The live stream reported an error | yes |
@@ -115,7 +115,7 @@ The client keeps your timeouts for `http`/`publish`; streams use a 45 s read tim
 If you add more Nidoo-gateway artifacts later, the BOM keeps them on one version:
 
 ```kotlin
-implementation(platform("com.github.Gekkotron.Nidoo-gateway:athena-gateway-bom:v1.3"))
+implementation(platform("com.github.Gekkotron.Nidoo-gateway:athena-gateway-bom:v1.4"))
 implementation("com.github.Gekkotron.Nidoo-gateway:athena-gateway-client")
 ```
 
