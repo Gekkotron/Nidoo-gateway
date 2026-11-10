@@ -3,6 +3,7 @@
 [![CI](https://github.com/Gekkotron/Nidoo-gateway/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Gekkotron/Nidoo-gateway/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Gekkotron/Nidoo-gateway/badges/coverage.json)](https://github.com/Gekkotron/Nidoo-gateway/actions/workflows/ci.yml)
 [![SDK coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Gekkotron/Nidoo-gateway/badges/sdk-coverage.json)](sdk/kotlin/README.md)
+[![Sponsor](https://img.shields.io/github/sponsors/Gekkotron?label=Sponsor&logo=GitHub)](https://github.com/sponsors/Gekkotron)
 
 An end-to-end encrypted gateway for HTTP APIs and MQTT communications, using AES-GCM. Ship home-automation traffic over the public internet through a single encrypted tunnel — no per-service certificates, no exposed brokers.
 
