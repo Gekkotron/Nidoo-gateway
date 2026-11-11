@@ -861,6 +861,31 @@ Encrypted MQTT publish endpoint for publishing messages to MQTT brokers.
 **Usage:**
 This endpoint allows you to publish messages to MQTT topics through the encrypted gateway. Messages are published once and the response confirms success or failure.
 
+The gateway waits for the broker's CONNACK (5 s) and, once connected, for the
+publish to complete (5 s) before answering. A `200` therefore means the broker
+accepted the login and, at QoS 1/2, acknowledged the message (PUBACK/PUBCOMP).
+At QoS 0 MQTT has no acknowledgement, so `200` only means the login was
+accepted and the message was sent.
+
+**Response statuses** (inside the encrypted envelope):
+
+| `status` | Meaning | `body` (JSON string) | `source` |
+|---|---|---|---|
+| `200` | Broker accepted the login and the message | `{"success": true, "topic": "...", "message": "Published successfully"}` | — |
+| `400` | `topic` or `message` missing | `{"error": "Missing required field: ..."}` | `gateway` |
+| `401` | Broker refused the login (CONNACK 4 bad username/password, 5 not authorised) | `{"error": "Broker refused connection: ...", "code": 4\|5}` | — |
+| `502` | Broker refused the connection for another reason (CONNACK 1–3) | `{"error": "Broker refused connection: ...", "code": n}` | — |
+| `504` | Broker did not answer CONNECT, or did not acknowledge the publish | `{"error": "Broker <host>:<port> did not answer CONNECT"}` / `{"error": "Publish not acknowledged by broker"}` | — |
+| `500` | Client-side publish failure, or the broker was unreachable | `{"success": false, ..., "message": "Failed with code n"}` / `{"error": "MQTT error: ..."}` | `gateway` for exceptions only |
+
+Broker-side failures are deliberately **not** tagged `"source": "gateway"`, so
+the Kotlin SDK returns them as a normal response envelope rather than throwing.
+
+> Before this change the gateway did `connect()` → `publish()` → `disconnect()`
+> without running the network loop, so a refused login was never seen: it
+> answered `200 "Published successfully"` while the broker silently dropped the
+> message. Clients that relied on that `200` can now see `401`/`502`/`504`.
+
 ### POST /mqtt/subscribe
 
 Server-Sent Events endpoint for subscribing to MQTT topics in real-time.
@@ -944,6 +969,20 @@ curl http://localhost:10000/health
 - Verify MQTT broker is running and accessible
 - Check broker hostname and port configuration
 - Validate MQTT credentials if authentication is enabled
+
+`/mqtt/publish` tells these apart (see [POST /mqtt/publish](#post-mqttpublish)):
+
+- **`401` "Broker refused connection: … not authorised"**: wrong username or
+  password. Watch for look-alike characters (`I`/`l`/`1`, `O`/`0`) when a
+  password is typed by hand.
+- **`504` "did not answer CONNECT"**: the host accepts TCP but is not
+  answering as an MQTT broker (wrong port, TLS-only listener, overloaded broker).
+- **`500` "MQTT error: timed out"**: the broker host is unreachable from the
+  gateway machine.
+- **`200`, but subscribers see nothing**: the broker accepted the publish but its
+  ACL hides the topic from the subscribing user. Mosquitto acknowledges
+  ACL-denied publishes and drops them silently, and anonymous clients may be
+  allowed to read only some topics. Subscribe with the same user to confirm.
 
 ### Docker Volume Permissions
 
