@@ -192,7 +192,16 @@ def test_http_transport_error_propagates(crypto, secret, fake_request):
 @pytest.fixture
 def fake_mqtt(monkeypatch):
     client = mock.Mock()
-    client.publish.return_value = SimpleNamespace(rc=0)
+    client.connack_rc = 0  # what the fake broker answers to CONNECT; None = never answers
+    client.publish.return_value = SimpleNamespace(
+        rc=0, wait_for_publish=lambda timeout=None: None, is_published=lambda: True
+    )
+
+    def loop_start():
+        if client.connack_rc is not None:
+            client.on_connect(client, None, {}, client.connack_rc)
+
+    client.loop_start.side_effect = loop_start
     monkeypatch.setattr(mqtt_service.mqtt, "Client", mock.Mock(return_value=client))
     return client
 
@@ -251,3 +260,37 @@ def test_mqtt_broker_rejection_is_not_tagged(crypto, secret, fake_mqtt):
     fake_mqtt.publish.return_value = SimpleNamespace(rc=4)
     out = _open(crypto, MQTTService(crypto).handle_request({"topic": "t", "message": "m"}, secret))
     assert "source" not in out
+
+
+@pytest.mark.parametrize("rc, status", [(5, 401), (4, 401), (3, 502)])
+def test_mqtt_connack_refusal_is_reported(crypto, secret, fake_mqtt, rc, status):
+    fake_mqtt.connack_rc = rc
+    out = _open(crypto, MQTTService(crypto).handle_request({"topic": "t", "message": "m"}, secret))
+
+    assert out["status"] == status
+    body = json.loads(out["body"])
+    assert body["code"] == rc
+    assert body["error"].startswith("Broker refused connection")
+    assert "source" not in out
+    fake_mqtt.publish.assert_not_called()
+    fake_mqtt.disconnect.assert_called_once()
+
+
+def test_mqtt_no_connack_times_out(crypto, secret, fake_mqtt, monkeypatch):
+    monkeypatch.setattr(mqtt_service, "CONNECT_TIMEOUT_SECONDS", 0.01)
+    fake_mqtt.connack_rc = None
+    out = _open(crypto, MQTTService(crypto).handle_request({"topic": "t", "message": "m"}, secret))
+
+    assert out["status"] == 504
+    assert "did not answer CONNECT" in json.loads(out["body"])["error"]
+    fake_mqtt.publish.assert_not_called()
+
+
+def test_mqtt_unacknowledged_publish_is_reported(crypto, secret, fake_mqtt):
+    fake_mqtt.publish.return_value = SimpleNamespace(
+        rc=0, wait_for_publish=lambda timeout=None: None, is_published=lambda: False
+    )
+    out = _open(crypto, MQTTService(crypto).handle_request({"topic": "t", "message": "m"}, secret))
+
+    assert out["status"] == 504
+    assert json.loads(out["body"])["error"] == "Publish not acknowledged by broker"
