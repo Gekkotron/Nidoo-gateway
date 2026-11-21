@@ -1,0 +1,268 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "io.github.gekkotron",
+    "module": "athena-gateway-client",
+    "version": "2.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.7.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "metadataApiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-metadata",
+        "org.jetbrains.kotlin.platform.type": "common"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-coroutines-core",
+          "version": {
+            "requires": "1.11.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-serialization-json",
+          "version": {
+            "requires": "1.11.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-io-core",
+          "version": {
+            "requires": "0.9.1"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.4.20"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-core",
+          "version": {
+            "requires": "3.6.1"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-darwin",
+          "version": {
+            "requires": "3.6.1"
+          }
+        },
+        {
+          "group": "dev.whyoleg.cryptography",
+          "module": "cryptography-core",
+          "version": {
+            "requires": "0.6.0"
+          }
+        },
+        {
+          "group": "dev.whyoleg.cryptography",
+          "module": "cryptography-provider-cryptokit",
+          "version": {
+            "requires": "0.6.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "athena-gateway-client-metadata-2.0.0.jar",
+          "url": "athena-gateway-client-2.0.0.jar",
+          "size": 11736,
+          "sha512": "1438c7d1fb5687d43a69f37faafdf550c891e2e48194b58b5a8ccda4345b1de2ae845edc5d74ea1fdefc63fe0797d08c880389d1bf5a318ac9886d99edf40166",
+          "sha256": "629197b2b78ecf1f7b3b4b521e49ee88d7e8bd944b5251d6c81f76f37f64c7dd",
+          "sha1": "d8665d57e2ce90be961908c7a58846b88d0d6fbb",
+          "md5": "03a619a98964615da7713050398cd1a9"
+        }
+      ]
+    },
+    {
+      "name": "metadataSourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.platform.type": "common"
+      },
+      "files": [
+        {
+          "name": "athena-gateway-client-kotlin-2.0.0-sources.jar",
+          "url": "athena-gateway-client-2.0.0-sources.jar",
+          "size": 18221,
+          "sha512": "f2603c07661ebacdfad62e62b422960bb435d8742bac15ab3efe2f60c48a14476fad8a8ee4246219f006a4f5f0a31c17d8ba322717ca5e0446aacb919b494265",
+          "sha256": "00c6ae5394ada6d8176863effbc0e6d62eccbba251301af64e0276573f18f390",
+          "sha1": "cabf7ab01ce701d0f532b46f56d053c3d5070164",
+          "md5": "0581f1c6072b3fc254d1e2cfa813d766"
+        }
+      ]
+    },
+    {
+      "name": "iosArm64ApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.native.target": "ios_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../athena-gateway-client-iosarm64/2.0.0/athena-gateway-client-iosarm64-2.0.0.module",
+        "group": "io.github.gekkotron",
+        "module": "athena-gateway-client-iosarm64",
+        "version": "2.0.0"
+      }
+    },
+    {
+      "name": "iosArm64SourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.native.target": "ios_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../athena-gateway-client-iosarm64/2.0.0/athena-gateway-client-iosarm64-2.0.0.module",
+        "group": "io.github.gekkotron",
+        "module": "athena-gateway-client-iosarm64",
+        "version": "2.0.0"
+      }
+    },
+    {
+      "name": "iosArm64MetadataElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-metadata",
+        "org.jetbrains.kotlin.native.target": "ios_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../athena-gateway-client-iosarm64/2.0.0/athena-gateway-client-iosarm64-2.0.0.module",
+        "group": "io.github.gekkotron",
+        "module": "athena-gateway-client-iosarm64",
+        "version": "2.0.0"
+      }
+    },
+    {
+      "name": "iosSimulatorArm64ApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.native.target": "ios_simulator_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../athena-gateway-client-iossimulatorarm64/2.0.0/athena-gateway-client-iossimulatorarm64-2.0.0.module",
+        "group": "io.github.gekkotron",
+        "module": "athena-gateway-client-iossimulatorarm64",
+        "version": "2.0.0"
+      }
+    },
+    {
+      "name": "iosSimulatorArm64SourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.native.target": "ios_simulator_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../athena-gateway-client-iossimulatorarm64/2.0.0/athena-gateway-client-iossimulatorarm64-2.0.0.module",
+        "group": "io.github.gekkotron",
+        "module": "athena-gateway-client-iossimulatorarm64",
+        "version": "2.0.0"
+      }
+    },
+    {
+      "name": "iosSimulatorArm64MetadataElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-metadata",
+        "org.jetbrains.kotlin.native.target": "ios_simulator_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../athena-gateway-client-iossimulatorarm64/2.0.0/athena-gateway-client-iossimulatorarm64-2.0.0.module",
+        "group": "io.github.gekkotron",
+        "module": "athena-gateway-client-iossimulatorarm64",
+        "version": "2.0.0"
+      }
+    },
+    {
+      "name": "jvmApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "available-at": {
+        "url": "../../athena-gateway-client-jvm/2.0.0/athena-gateway-client-jvm-2.0.0.module",
+        "group": "io.github.gekkotron",
+        "module": "athena-gateway-client-jvm",
+        "version": "2.0.0"
+      }
+    },
+    {
+      "name": "jvmRuntimeElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "available-at": {
+        "url": "../../athena-gateway-client-jvm/2.0.0/athena-gateway-client-jvm-2.0.0.module",
+        "group": "io.github.gekkotron",
+        "module": "athena-gateway-client-jvm",
+        "version": "2.0.0"
+      }
+    },
+    {
+      "name": "jvmSourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "available-at": {
+        "url": "../../athena-gateway-client-jvm/2.0.0/athena-gateway-client-jvm-2.0.0.module",
+        "group": "io.github.gekkotron",
+        "module": "athena-gateway-client-jvm",
+        "version": "2.0.0"
+      }
+    }
+  ]
+}

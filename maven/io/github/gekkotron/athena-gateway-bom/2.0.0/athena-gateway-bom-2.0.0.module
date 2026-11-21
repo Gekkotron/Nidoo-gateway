@@ -1,0 +1,50 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "io.github.gekkotron",
+    "module": "athena-gateway-bom",
+    "version": "2.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.7.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "platform",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencyConstraints": [
+        {
+          "group": "io.github.gekkotron",
+          "module": "athena-gateway-client",
+          "version": {
+            "requires": "2.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "platform",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencyConstraints": [
+        {
+          "group": "io.github.gekkotron",
+          "module": "athena-gateway-client",
+          "version": {
+            "requires": "2.0.0"
+          }
+        }
+      ]
+    }
+  ]
+}
