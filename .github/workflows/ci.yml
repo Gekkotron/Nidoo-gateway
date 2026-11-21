@@ -44,11 +44,27 @@ jobs:
           distribution: temurin
           java-version: "17"
       - uses: gradle/actions/setup-gradle@v4
-      - run: ./gradlew test koverXmlReport koverVerify
+      - run: ./gradlew jvmTest koverXmlReport koverVerify
       - uses: actions/upload-artifact@v4
         with:
           name: sdk-coverage
           path: sdk/kotlin/build/reports/kover/report.xml
+
+  # The SDK's common tests on the iOS Simulator, plus the device target's compilation.
+  sdk-ios:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: sdk/kotlin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+      - run: ./gradlew iosSimulatorArm64Test compileKotlinIosArm64
 
   sdk-integration:
     runs-on: ubuntu-latest

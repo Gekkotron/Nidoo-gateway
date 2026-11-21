@@ -383,10 +383,11 @@ The SSE stream will receive encrypted messages with the following types:
 
 #### Kotlin / Android
 
-Use the official client library, [`athena-gateway-client`](sdk/kotlin/README.md):
+Use the official client library, [`athena-gateway-client`](sdk/kotlin/README.md) (JVM, Android and iOS;
+its README shows the Maven repository to add):
 
 ```kotlin
-implementation("com.github.Gekkotron.Nidoo-gateway:athena-gateway-client:v1.4")
+implementation("io.github.gekkotron:athena-gateway-client:2.0.0")
 ```
 
 Fetch binary files (camera snapshots, clips) with `download()` (needs gateway v1.3+):
@@ -793,7 +794,7 @@ Nidoo-gateway/
 ├── requirements.txt         # Server dependencies
 ├── requirements-dev.txt     # Test dependencies
 ├── pytest.ini
-├── jitpack.yml              # JitPack build for the Kotlin SDK
+├── jitpack.yml              # JitPack build for the Kotlin SDK (v1.x)
 ├── run_tailscale.sh         # Tailscale Funnel helper script
 ├── update.sh
 ├── LICENSE

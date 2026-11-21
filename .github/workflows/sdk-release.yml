@@ -1,0 +1,64 @@
+name: SDK release
+
+# Publishes the Kotlin Multiplatform client (JVM + iOS) to the static Maven repository served by
+# GitHub Pages from the gh-pages branch: https://gekkotron.github.io/Nidoo-gateway/maven
+# Runs on macOS because only a Mac can build the iOS artifacts (JitPack cannot).
+on:
+  push:
+    tags: ["v2.*"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sdk-release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Test
+        working-directory: sdk/kotlin
+        run: ./gradlew jvmTest iosSimulatorArm64Test koverVerify
+
+      - name: Build the Maven repository
+        working-directory: sdk/kotlin
+        run: ./gradlew publishAllPublicationsToPagesRepository -Pversion="${GITHUB_REF_NAME#v}"
+
+      - name: Check out gh-pages
+        run: |
+          if git ls-remote --exit-code --heads origin gh-pages >/dev/null; then
+            git fetch --depth=1 origin gh-pages
+            git worktree add site origin/gh-pages
+            git -C site switch -c gh-pages
+          else
+            git worktree add --orphan -b gh-pages site
+          fi
+
+      - name: Add this version (never overwrite a published one)
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          if [ -e "site/maven/io/github/gekkotron/athena-gateway-client/$version" ]; then
+            echo "::error::athena-gateway-client $version is already published; tag a new version."
+            exit 1
+          fi
+          mkdir -p site/maven
+          cp -R sdk/kotlin/build/pages-repo/. site/maven/
+          touch site/.nojekyll
+
+      - name: Push gh-pages
+        working-directory: site
+        run: |
+          git add -A
+          git -c user.name=Gekkotron -c user.email=60887050+Gekkotron@users.noreply.github.com \
+            commit -q -m "athena-gateway-client ${GITHUB_REF_NAME#v}"
+          git push -q origin gh-pages
