@@ -1,0 +1,63 @@
+package io.github.gekkotron.athena.gateway.client
+
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+
+class ModelsTest {
+    @Serializable data class State(val on: Boolean)
+
+    @Test fun `bodyAs decodes and ignores unknown keys`() {
+        val r = GatewayResponse(200, buildJsonObject { put("on", true); put("extra", 1) })
+        assertEquals(State(true), r.bodyAs<State>())
+    }
+
+    @Test fun `backoff grows by factor and caps at max`() {
+        val b = Backoff(initial = 1.seconds, max = 5.seconds, factor = 2.0)
+        assertEquals(listOf(1, 2, 4, 5, 5).map { it.seconds }, (0..4).map(b::delayFor))
+    }
+
+    @Test fun `backoff validates its arguments`() {
+        assertFailsWith<IllegalArgumentException> { Backoff(initial = 0.milliseconds) }
+        assertFailsWith<IllegalArgumentException> { Backoff(initial = 2.seconds, max = 1.seconds) }
+        assertFailsWith<IllegalArgumentException> { Backoff(factor = 0.5) }
+    }
+
+    @Test fun `only stream and transport failures are retryable`() {
+        assertTrue(GatewayException.StreamError("x").retryable)
+        assertTrue(GatewayException.Transport(kotlinx.io.IOException("x")).retryable)
+        assertFalse(GatewayException.Rejected("x").retryable)
+        assertFalse(GatewayException.Unauthorized().retryable)
+        assertFalse(GatewayException.GatewayError("x").retryable)
+    }
+
+    @Test fun `Broker toString hides the password`() {
+        val withPassword = Broker(host = "h", port = 1883, username = "u", password = "s3cr3t")
+        assertTrue(withPassword.toString().contains("password=***"))
+        assertFalse(withPassword.toString().contains("s3cr3t"))
+
+        val withoutPassword = Broker(host = "h")
+        assertFalse(withoutPassword.toString().contains("***"))
+    }
+
+    @Test fun `messages compare raw bytes by content and print their size`() {
+        val a = MqttEvent.Message("t", JsonPrimitive("x"), 0, false, 1, raw = byteArrayOf(1, 2))
+        val b = MqttEvent.Message("t", JsonPrimitive("x"), 0, false, 1, raw = byteArrayOf(1, 2))
+        assertEquals(a, b)
+        assertEquals(a.hashCode(), b.hashCode())
+        assertTrue(a != b.copy(raw = byteArrayOf(9)))
+        assertTrue("raw=2 bytes" in a.toString())
+    }
+
+    @Test fun `BrokerRefused is never retried`() {
+        assertFalse(GatewayException.BrokerRefused(4, "x").retryable)
+    }
+}
