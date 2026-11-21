@@ -14,6 +14,13 @@ dependencies {
 }
 
 publishing {
+    repositories {
+        // Same static repo as the client (see the root build).
+        maven {
+            name = "pages"
+            url = uri(rootProject.layout.buildDirectory.dir("pages-repo"))
+        }
+    }
     publications {
         create<MavenPublication>("bom") {
             artifactId = "athena-gateway-bom"

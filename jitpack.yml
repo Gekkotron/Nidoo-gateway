@@ -1,4 +1,7 @@
 # JitPack builds the Kotlin client from sdk/kotlin on the first request for a tag.
+# v1.x tags only: from v2.0.0 the multiplatform client (JVM + iOS) is published to
+# https://gekkotron.github.io/Nidoo-gateway/maven by .github/workflows/sdk-release.yml,
+# because JitPack builds on Linux and cannot produce the iOS artifacts.
 jdk:
   - openjdk17
 install:

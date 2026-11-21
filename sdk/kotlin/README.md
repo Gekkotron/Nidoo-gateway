@@ -1,8 +1,9 @@
 # Nidoo Gateway Client (Kotlin)
 
-Kotlin/JVM client for the [Nidoo-gateway](../../README.md) HTTP/MQTT gateway: forward HTTP
+Kotlin Multiplatform client for the [Nidoo-gateway](../../README.md) HTTP/MQTT gateway: forward HTTP
 requests, publish to MQTT and stream MQTT topics live, end-to-end encrypted.
-Works in any Android app (no Android framework dependency) and on the JVM.
+Works on the JVM, in any Android app (no Android framework dependency) and on iOS
+(`iosArm64`, `iosSimulatorArm64`).
 
 Requires a gateway at **v1.1 or later**; `Message.raw` and `BrokerRefused` need **v1.2**; `download()` needs **v1.3**; `GatewayResponse.headers` needs **v1.4** (empty from an older gateway).
 
@@ -11,18 +12,28 @@ Requires a gateway at **v1.1 or later**; `Message.raw` and `BrokerRefused` need 
 ```kotlin
 // settings.gradle.kts
 dependencyResolutionManagement {
-    repositories { mavenCentral(); maven("https://jitpack.io") }
+    repositories {
+        mavenCentral()
+        maven("https://gekkotron.github.io/Nidoo-gateway/maven") {
+            content { includeGroup("io.github.gekkotron") }
+        }
+    }
 }
 
-// build.gradle.kts
+// build.gradle.kts (or commonMain.dependencies in a multiplatform module)
 dependencies {
-    implementation("com.github.Gekkotron.Nidoo-gateway:athena-gateway-client:v1.4")
+    implementation("io.github.gekkotron:athena-gateway-client:2.0.0")
 }
 ```
+
+Versions before 2.0.0 (JVM only) are on JitPack as
+`com.github.Gekkotron.Nidoo-gateway:athena-gateway-client:v1.x`.
 
 ## Quick start
 
 ```kotlin
+// JVM/Android: an optional okHttpClient parameter takes your own OkHttpClient.
+// iOS: the same call, backed by NSURLSession.
 val gateway = AthenaGatewayClient(
     baseUrl = "https://myhost.tailnet-name.ts.net",
     secretKey = BuildConfig.GATEWAY_KEY,   // 64 hex chars; never hardcode it in source
@@ -115,8 +126,8 @@ The client keeps your timeouts for `http`/`publish`; streams use a 45 s read tim
 If you add more Nidoo-gateway artifacts later, the BOM keeps them on one version:
 
 ```kotlin
-implementation(platform("com.github.Gekkotron.Nidoo-gateway:athena-gateway-bom:v1.4"))
-implementation("com.github.Gekkotron.Nidoo-gateway:athena-gateway-client")
+implementation(platform("io.github.gekkotron:athena-gateway-bom:2.0.0"))
+implementation("io.github.gekkotron:athena-gateway-client")
 ```
 
 ## License
